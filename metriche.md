@@ -1,6 +1,8 @@
-###VINDICTA progetto 16.1 PSR Emilia-Romagna 2014-2020 ##azione 3,
-analisi agroecosistema ##Calcolo delle metriche di analisi
-dell’agroecosistema
+# VINDICTA progetto 16.1 PSR Emilia-Romagna 2014-2020
+
+## azione 3, analisi agroecosistema
+
+### Calcolo delle metriche di analisi dell’agroecosistema
 
     library(raster)
 
@@ -10,7 +12,7 @@ dell’agroecosistema
 
     ## Caricamento del pacchetto richiesto: lattice
 
-##Visualizzazione della resistenza
+### Visualizzazione della resistenza
 
     setwd('./raster')
     resistance_norm <- raster('resistance_norm.tif')
