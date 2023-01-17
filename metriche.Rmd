@@ -1,0 +1,22 @@
+---
+title: "metrice"
+author: "Enrico Gabrielli F.A.R.M. Facilitazioni Agroecologiche Regionali Mobili"
+date: "17/1/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(raster)
+library(rasterVis)
+```
+
+## R Markdown
+
+Calcolo delle metriche di analisi dell'agroecosistema per il progetto VINDICTA
+
+```{r resistance}
+setwd('./raster')
+resistance_norm <- raster('resistance_norm.tif')
+levelplot(resistance_norm,zscaleLog=TRUE,margin=F)
+```
