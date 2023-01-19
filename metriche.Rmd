@@ -1,6 +1,6 @@
 ---
 title: "metriche"
-author: "Eresistance_normico Gabrielli F.A.R.M. Facilitazioni Agroecologiche Regionali Mobili"
+author: "Enrico Gabrielli F.A.R.M. Facilitazioni Agroecologiche Regionali Mobili"
 date: "17/1/2023"
 output: md_document
 ---
