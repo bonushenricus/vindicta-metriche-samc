@@ -2,7 +2,7 @@
 title: "metriche"
 author: "Eresistance_normico Gabrielli F.A.R.M. Facilitazioni Agroecologiche Regionali Mobili"
 date: "17/1/2023"
-output: md_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Calcolo delle metriche di analisi dell'agroecosistema
 
-```{r pacchetti, message=FALSE}
+```{r pacchetti, echo=FALSE, message=FALSE}
 library(raster) # per analizzare il raster
 library(httr)
 library(tidyverse)
@@ -28,7 +28,7 @@ library(gridExtra)
 
 ### Visualizzazione della resistenza
 
-```{r resistance carico del dato e costruzione del plot, message=FALSE}
+```{r resistance carico del dato e costruzione del plot, echo=FALSE, message=FALSE}
 cartella <- './raster' #cartella in cui si trovano i raster in formato tif
 files <- list.files(path = cartella,pattern = '*resistance_norm.tif',full.names = T)
 resistance_norm <- vector("list", length(files))
@@ -53,7 +53,7 @@ plot_resistance_norm <- lapply(resistance_norm_df,fun_plot_resistance)
 do.call("grid.arrange", c(plot_resistance_norm, ncol = length(plot_resistance_norm))) #grid.arrange serve a visualizzare i plot nella lista uno a fianco dell'altro (tante colonne quanti sono i plot nella lista)
 ```
 
-```{r violin plot resistenza}
+```{r violin plot resistenza, echo=FALSE, message=FALSE}
 #non posso far diventare la lista di dataframe dai raster un solo dataframe, perché potrebbero essere di diversa grandezza. quindi devo lavorare direttamente su resistance_norm_df già creato in precedenza, cioé la lista di dataframe
 fun_violin_plot <- function(df) gg <- ggplot(df,aes(x='',y=value)) +
   geom_violin(na.rm = T) #funzione di ggplot per grafici a violino (boxplot+density). x bisogna segnarlo

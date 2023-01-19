@@ -10,69 +10,48 @@
     library(ggplot2)
     library(terrainr)
     library(patchwork)
+    library(stringr)
+    library(gridExtra)
 
 ### Visualizzazione della resistenza
 
-    setwd('./raster') #cartella in cui si trovano i raster in formato tif
-    resistance_norm <- raster('resistance_norm.tif') #carico come raster il file
-    risoluzione <- xres(resistance_norm) #calcolo risoluzione, servirà a calcolare la risoluzione della foto aerea scaricata
-    colonne <- ncol(resistance_norm) #idem come sopra
-    righe <- nrow(resistance_norm) #idem come sopra
-
-    resistance_norm_spdf <- as(resistance_norm, "SpatialPixelsDataFrame") #sono i passaggi per usare ggplot2 per visualizzare la carta
-    resistance_norm_df <- as.data.frame(resistance_norm_spdf)
-    colnames(resistance_norm_df) <- c("value", "x", "y")
-    plot_resistance_norm <- ggplot(resistance_norm_df)+
+    cartella <- './raster' #cartella in cui si trovano i raster in formato tif
+    files <- list.files(path = cartella,pattern = '*resistance_norm.tif',full.names = T)
+    resistance_norm <- vector("list", length(files))
+    names(resistance_norm) <- str_extract(files, "(?<=\\+)[[:alpha:]]+(?=_)") #i file iniziano con + e con il nome dell'azienda
+    for (i in 1:length(files)) { # importo i raster
+      resistance_norm[[i]] <- raster(files[i])
+    }
+    #di seguito i passaggi per usare ggplot2 per visualizzare la carta
+    resistance_norm_df <- lapply(resistance_norm,function(x) #ggplot usa dei dataframe
+      raster::as.data.frame(x,xy=TRUE #quindi trasformo i raster in dataframe
+                            ,centroids=T
+    #                        ,row.names = c("x","y","value")
+                            )
+      )
+    nomecolonne <- c("x","y","value") #il valore ha il nome del raster, voglio lo stesso x tutti i raster
+    resistance_norm_df <- lapply(resistance_norm_df,setNames,nomecolonne)
+    fun_plot_resistance <- function(x) ggplot(x)+ #funzione per l'heatmap
       geom_tile(aes(x=x,y=y,fill=value))+
         scale_fill_distiller(type="seq",palette = "Reds",direction=-1)+ #direction=-1 è per invertire i gradienti
       coord_fixed() #per avere un quadrato sempre
+    plot_resistance_norm <- lapply(resistance_norm_df,fun_plot_resistance)
+    do.call("grid.arrange", c(plot_resistance_norm, ncol = length(plot_resistance_norm))) #grid.arrange serve a visualizzare i plot nella lista uno a fianco dell'altro (tante colonne quanti sono i plot nella lista)
 
-    bbox <- raster::bbox(resistance_norm) #ricavo il bounding-box del raster
-    bbox <- paste0(bbox[1,1],',',bbox[2,1],',',bbox[1,2],',',bbox[2,2]) #su cui estrarre il dato dal wms
-    wms <- "http://servizigis.regione.emilia-romagna.it/wms/agea2020_nir?" # url del servizio wms
-    url <- parse_url(wms)
-    url$query <- list(service = "WMS"
-                      ,version = "1.3.0" # optional
-                      ,request = "GetMap"
-                      ,layers = "Agea2020_NIR" # layer del servizio
-                      ,crs = "EPSG:25832" # uguale alla mappa della resistenza
-                      ,bbox = bbox # la dimensione in coordinate della mappa della resistenza
-                      ,format = "image/jpeg" # formato adatto per una foto
-                      ,WIDTH=((colonne[1]+1)*risoluzione)
-                      ,HEIGHT=((righe[1]+1)*risoluzione)
-    )
-    request <- build_url(url)
-    file <- "wms_raster.jpeg"
-    GET(url = request, 
-        write_disk(file,overwrite = T)) #estraggo un'immagine
+![](metriche_files/figure-markdown_strict/resistance%20carico%20del%20dato%20e%20costruzione%20del%20plot-1.png)
 
-    ## Response [http://servizigis.regione.emilia-romagna.it/wms/agea2020_nir?service=WMS&version=1.3.0&request=GetMap&layers=Agea2020_NIR&crs=EPSG%3A25832&bbox=642312.140941324%2C4957210.17631022%2C643292.140941324%2C4958190.17631022&format=image%2Fjpeg&WIDTH=1000&HEIGHT=1000]
-    ##   Date: 2023-01-17 22:37
-    ##   Status: 200
-    ##   Content-Type: image/jpeg
-    ##   Size: 133 kB
-    ## <ON DISK>  /home/bonushenricus/Documenti/lavoro/progetti/vindicta/R/github_vindicta_samc/wms_raster.jpeg
+    #non posso far diventare la lista di dataframe dai raster un solo dataframe, perché potrebbero essere di diversa grandezza. quindi devo lavorare direttamente su resistance_norm_df già creato in precedenza, cioé la lista di dataframe
+    fun_violin_plot <- function(df) gg <- ggplot(df,aes(x='',y=value)) +
+      geom_violin(na.rm = T) #funzione di ggplot per grafici a violino (boxplot+density). x bisogna segnarlo
+    resistance_violin_plot <- lapply(resistance_norm_df,fun_violin_plot) #la funzione va per ogni oggetto della lista di dataframe dei valori ricavati dai raster
+    nomi_plot <- as.list(names(resistance_norm_df)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
+    fun_nomi_plot <- function(plot,nomi) {plot + ggtitle(nomi)} #funzione per aggiungere il titolo ai plot già creati
+    resistance_violin_plot <- mapply(plot=resistance_violin_plot,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
+    resistance_norm_df_v <- lapply(resistance_norm,function(x) #creare una lista di vettori solo con i valori per fare le medie
+      as.vector(x))
+    media_plot <- lapply(resistance_norm_df_v,mean) #calcolo la media della resistenza
+    fun_plot_medie <- function(plot,medie) {plot + geom_point(y=medie)} #funzione per aggiungere il punto medio ai plot già creati
+    resistance_violin_plot <- mapply(plot=resistance_violin_plot,medie=media_plot,fun_plot_medie,SIMPLIFY = F) #aggiungo il punto medio
+    do.call("grid.arrange", c(resistance_violin_plot, ncol = length(resistance_violin_plot))) #grid.arrange serve a visualizzare i plot nella lista uno a fianco dell'altro (tante colonne quanti sono i plot nella lista)
 
-    wms_raster <- stack("wms_raster.jpeg") #carico la foto aerea nelle 3 componenti RGB
-    extent(wms_raster) <- extent(resistance_norm) #georeferenzio la foto aerea sul raster tif della resistenza
-    crs(wms_raster) <- crs(resistance_norm) #do la proiezione corretta
-
-    plot_wms_raster <- ggplot() +
-      geom_spatial_rgb(
-        data = wms_raster,
-        mapping = aes(
-          x=x,
-          y=y,
-          r=red,
-          g=green,
-          b=blue
-        )
-      )+
-      coord_sf(crs = 25832)+ #stranamente mi segna comunque le coordinate in 4326
-      coord_fixed()
-
-    ## Warning: [rast] unknown extent
-
-    plot_wms_raster|plot_resistance_norm
-
-![](metriche_files/figure-markdown_strict/plot%20foto%20aerea%20+%20resistance_norm-1.png)
+![](metriche_files/figure-markdown_strict/violin%20plot%20resistenza-1.png)
