@@ -28,7 +28,8 @@ library(gridExtra)
 
 ### Visualizzazione della resistenza
 
-```{r resistance carico del dato e costruzione del plot, echo=FALSE, message=FALSE}
+```{r resistance carico del dato e costruzione del plot, fig.width=3, echo=FALSE, message=FALSE}
+#options(width = 200) #studiare 
 cartella <- './raster' #cartella in cui si trovano i raster in formato tif
 files <- list.files(path = cartella,pattern = '*resistance_norm.tif',full.names = T)
 resistance_norm <- vector("list", length(files))
@@ -38,28 +39,40 @@ for (i in 1:length(files)) { # importo i raster
 }
 #di seguito i passaggi per usare ggplot2 per visualizzare la carta
 resistance_norm_df <- lapply(resistance_norm,function(x) #ggplot usa dei dataframe
-  raster::as.data.frame(x,xy=TRUE #quindi trasformo i raster in dataframe
-                        ,centroids=T
-#                        ,row.names = c("x","y","value")
+  raster::as.data.frame(x,xy=TRUE #quindi trasformo i raster in dataframe, del valore e xy (che serve per fare i tile detta anche heatmap)
+                        ,centroids=T #il centroide pare non cambi niente ma mi sembrava corretto
                         )
   )
-nomecolonne <- c("x","y","value") #il valore ha il nome del raster, voglio lo stesso x tutti i raster
+nomecolonne <- c("x","y","value") #il valore ha il nome del raster, invece voglio lo stesso x tutti i raster, ovvero "value"
 resistance_norm_df <- lapply(resistance_norm_df,setNames,nomecolonne)
-fun_plot_resistance <- function(x) ggplot(x)+ #funzione per l'heatmap
-  geom_tile(aes(x=x,y=y,fill=value))+
-    scale_fill_distiller(type="seq",palette = "Reds",direction=-1)+ #direction=-1 è per invertire i gradienti
+fun_plot_resistance <- function(x) ggplot(x,aes(x=x,y=y))+ #funzione per l'heatmap
+  geom_tile(aes(fill=value))+
+  scale_fill_gradient(low = "green3",
+                      high = "white",
+                      trans='log',
+                      label = function(x) sprintf("%.2f", x),
+                      limits=c(0.01, 1) #per avere le legende dei vari plot confrontabili
+                      ) +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(), #rimuovi testi che non servono come "value" in legenda
+        legend.key.width = unit(1.5,'cm'), #change legend key width
+        ) +
+  labs(x = NULL, y = NULL) + #tolgo i label agli assi
   coord_fixed() #per avere un quadrato sempre
 plot_resistance_norm <- lapply(resistance_norm_df,fun_plot_resistance)
-do.call("grid.arrange", c(plot_resistance_norm, ncol = length(plot_resistance_norm))) #grid.arrange serve a visualizzare i plot nella lista uno a fianco dell'altro (tante colonne quanti sono i plot nella lista)
+nomi_plot <- as.list(names(resistance_norm_df)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
+fun_nomi_plot <- function(plot,nomi) {plot + ggtitle(nomi)} #funzione per aggiungere il titolo ai plot già creati
+plot_resistance_norm <- mapply(plot=plot_resistance_norm,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
+do.call("grid.arrange", c(plot_resistance_norm, ncol = length(plot_resistance_norm))) #grid.arrange serve a visualizzare i plot nella lista uno a fianco dell'altro (tante colonne quanti sono i plot nella lista). Purtroppo non riesco a capire come farla più grande
 ```
 
 ```{r violin plot resistenza, echo=FALSE}
 #non posso far diventare la lista di dataframe dai raster un solo dataframe, perché potrebbero essere di diversa grandezza. quindi devo lavorare direttamente su resistance_norm_df già creato in precedenza, cioé la lista di dataframe
 fun_violin_plot <- function(df) gg <- ggplot(df,aes(x='',y=value)) +
-  geom_violin(na.rm = T) #funzione di ggplot per grafici a violino (boxplot+density). x bisogna segnarlo
+  geom_violin(na.rm = T) + #funzione di ggplot per grafici a violino (boxplot+density). x bisogna segnarlo
+  labs(x = NULL, y = NULL) #tolgo i label agli assi
 resistance_violin_plot <- lapply(resistance_norm_df,fun_violin_plot) #la funzione va per ogni oggetto della lista di dataframe dei valori ricavati dai raster
-nomi_plot <- as.list(names(resistance_norm_df)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
-fun_nomi_plot <- function(plot,nomi) {plot + ggtitle(nomi)} #funzione per aggiungere il titolo ai plot già creati
+# riprendo i nomi dei plot
 resistance_violin_plot <- mapply(plot=resistance_violin_plot,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
 resistance_norm_df_v <- lapply(resistance_norm,function(x) #creare una lista di vettori solo con i valori per fare le medie
   as.vector(x))
