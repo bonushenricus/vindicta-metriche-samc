@@ -28,7 +28,7 @@ library(gridExtra)
 
 ### Visualizzazione della resistenza
 
-```{r resistance carico del dato e costruzione del plot, fig.width=3, echo=FALSE, message=FALSE}
+```{r resistance carico del dato e costruzione del plot, echo=FALSE, message=FALSE}
 #options(width = 200) #studiare 
 cartella <- './raster' #cartella in cui si trovano i raster in formato tif
 files <- list.files(path = cartella,pattern = '*resistance_norm.tif',full.names = T)
