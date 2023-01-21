@@ -3,11 +3,8 @@ title: "metriche"
 author: "Enrico Gabrielli F.A.R.M. Facilitazioni Agroecologiche Regionali Mobili"
 date: "17/1/2023"
 output:
-  html_document:
+  md_document:
     variant: markdown_github
-    fig_width: 20
-    out_width: "300px"
-    keep_md: true    
 ---
 
 ```{r setup, include=FALSE}
@@ -33,7 +30,7 @@ library(gridExtra)
 
 ### Visualizzazione della resistenza
 
-```{r resistance carico del dato e costruzione del plot, echo=FALSE, message=FALSE}
+```{r resistance, echo=FALSE, message=FALSE}
 #options(width = 200) #studiare 
 cartella <- './raster' #cartella in cui si trovano i raster in formato tif
 files <- list.files(path = cartella,pattern = '*resistance_norm.tif',full.names = T)
@@ -68,10 +65,14 @@ plot_resistance_norm <- lapply(resistance_norm_df,fun_plot_resistance)
 nomi_plot <- as.list(names(resistance_norm_df)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
 fun_nomi_plot <- function(plot,nomi) {plot + ggtitle(nomi)} #funzione per aggiungere il titolo ai plot già creati
 plot_resistance_norm <- mapply(plot=plot_resistance_norm,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
+```
+
+```{r heatmap resistenza, echo=FALSE, fig.width=8, dev='svg',dpi=300}
 do.call("grid.arrange", c(plot_resistance_norm, ncol = length(plot_resistance_norm))) #grid.arrange serve a visualizzare i plot nella lista uno a fianco dell'altro (tante colonne quanti sono i plot nella lista). Purtroppo non riesco a capire come farla più grande
 ```
 
-```{r violin plot resistenza, echo=FALSE}
+
+```{r violin resistenza, echo=FALSE}
 #non posso far diventare la lista di dataframe dai raster un solo dataframe, perché potrebbero essere di diversa grandezza. quindi devo lavorare direttamente su resistance_norm_df già creato in precedenza, cioé la lista di dataframe
 fun_violin_plot <- function(df) gg <- ggplot(df,aes(x='',y=value)) +
   geom_violin(na.rm = T) + #funzione di ggplot per grafici a violino (boxplot+density). x bisogna segnarlo
@@ -84,6 +85,8 @@ resistance_norm_df_v <- lapply(resistance_norm,function(x) #creare una lista di 
 media_plot <- lapply(resistance_norm_df_v,mean) #calcolo la media della resistenza
 fun_plot_medie <- function(plot,medie) {plot + geom_point(y=medie)} #funzione per aggiungere il punto medio ai plot già creati
 resistance_violin_plot <- mapply(plot=resistance_violin_plot,medie=media_plot,fun_plot_medie,SIMPLIFY = F) #aggiungo il punto medio
-do.call("grid.arrange", c(resistance_violin_plot, ncol = length(resistance_violin_plot))) #grid.arrange serve a visualizzare i plot nella lista uno a fianco dell'altro (tante colonne quanti sono i plot nella lista)
 ```
 
+```{r plot violin resistenza, echo=FALSE, fig.width=8,dev='svg'}
+do.call("grid.arrange", c(resistance_violin_plot, ncol = length(resistance_violin_plot))) #grid.arrange serve a visualizzare i plot nella lista uno a fianco dell'altro (tante colonne quanti sono i plot nella lista). Purtroppo non riesco a capire come farla più grande
+```
