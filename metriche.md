@@ -6,6 +6,6 @@
 
 ### Visualizzazione della resistenza
 
-![](metriche_files/figure-markdown_strict/resistance%20carico%20del%20dato%20e%20costruzione%20del%20plot-1.png)
+![](metriche_files/figure-markdown_github/resistance%20carico%20del%20dato%20e%20costruzione%20del%20plot-1.png)
 
-![](metriche_files/figure-markdown_strict/violin%20plot%20resistenza-1.png)
+![](metriche_files/figure-markdown_github/violin%20plot%20resistenza-1.png)

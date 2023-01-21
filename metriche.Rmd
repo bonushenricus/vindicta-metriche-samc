@@ -2,9 +2,9 @@
 title: "metriche"
 author: "Enrico Gabrielli F.A.R.M. Facilitazioni Agroecologiche Regionali Mobili"
 date: "17/1/2023"
-output: md_document
-out.width: "600px"
-fig.width: 14
+output:
+  md_document:
+    variant: markdown_github
 ---
 
 ```{r setup, include=FALSE}
