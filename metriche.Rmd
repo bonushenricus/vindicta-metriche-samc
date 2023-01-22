@@ -61,10 +61,15 @@ rast_df <- lapply(rast_df, setNames, 'value') #la colonna dei dataframe deve ess
 medie <- lapply(rast_df,function(x) mean(x[,1]))
 rast_df_br <- bind_rows(rast_df,.id = "data_frame") #creo un'unica tabella con due colonne, una con il nome del raster, l'altra con i valori
 ```
-####Resistenza
+
+#### Resistenza
+
 Metrica di quanto è resistente al movimento il paesaggio.
-1= resistenza totale
-0= resistenza nulla
+
+-   1= resistenza totale
+
+-   0= resistenza nulla
+
 ```{r plot resistenza, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
 ggplot(filter(rast_df_br,str_detect(data_frame,"resistenza")),aes(x=data_frame,y=value))+
   geom_violin(na.rm = T,scale="area")+
@@ -72,37 +77,52 @@ ggplot(filter(rast_df_br,str_detect(data_frame,"resistenza")),aes(x=data_frame,y
   labs(x=NULL,y = NULL)
 ```
 
-####Assorbanza
-Metrica di quanto è assorbente in paesaggio. Assorbimento significa impossibilità di movimento, o incapacità di tornare indietro
-1= assorbanza totale, ovvero mortalità
-0= assorbanza nulla
-I valori o sono vicini a 1 o sono vicini a 0
+#### Assorbanza
+
+Metrica di quanto è assorbente in paesaggio.\
+Assorbimento significa impossibilità di movimento, o incapacità di tornare indietro
+
+-   1= assorbanza totale, ovvero mortalità
+
+-   0= assorbanza nulla I valori o sono vicini a 1 o sono vicini a 0
+
 ```{r plot assorbanza, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
 ggplot(filter(rast_df_br,str_detect(data_frame,"assorbimento")),aes(x=data_frame,y=value))+
   geom_violin(na.rm = T,scale="area")+
   scale_y_continuous(trans='log10') +
   labs(x=NULL,y = NULL)
 ```
-###Metriche SAMC (Spatial Absorbing Markov Chain)
+
+### Metriche SAMC (Spatial Absorbing Markov Chain)
+
 Sono le metriche calcolate dal punto di lancio della vespa samurai, che è il centro del raster.
-####Dispersione
-Con dispersione si intende la probabilità che la cella sia stata visitata almeno una volta dal parassitoide.
+
+#### Dispersione
+
+Con dispersione si intende la probabilità che la cella sarà visitata almeno una volta dal parassitoide.
+
 ```{r plot dispersion, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
 ggplot(filter(rast_df_br,str_detect(data_frame,"dispersione")),aes(x=data_frame,y=value))+
   geom_violin(na.rm = T,scale="area")+
   scale_y_continuous(trans='log10') +
   labs(x=NULL,y = NULL)
 ```
-####Visite
+
+#### Visite
+
 Con "Visitation" si intende il numero di visite nella cella.
+
 ```{r plot visitation, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
 ggplot(filter(rast_df_br,str_detect(data_frame,"visite")),aes(x=data_frame,y=value))+
   geom_violin(na.rm = T,scale="area")+
   scale_y_continuous(trans='log10') +
   labs(x=NULL,y = NULL)
 ```
-####Mortalità
+
+#### Mortalità
+
 Con Mortalità si intende la probabilità di assorbimento nella cella visitata.
+
 ```{r plot mortality, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
 ggplot(filter(rast_df_br,str_detect(data_frame,"mortalita")),aes(x=data_frame,y=value))+
   geom_violin(na.rm = T,scale="area")+
