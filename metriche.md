@@ -12,6 +12,7 @@ Metrica di quanto è resistente al movimento il paesaggio.
 
 -   0= resistenza nulla
 
+![](metriche_files/figure-markdown_github/plot%20heatmap%20resistenza-1.svg)
 ![](metriche_files/figure-markdown_github/plot%20resistenza-1.svg)
 
 #### Assorbanza

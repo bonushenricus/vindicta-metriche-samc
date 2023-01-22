@@ -27,6 +27,7 @@ library(terrainr)
 library(stringr)
 library(gridExtra)
 library(dplyr)
+library(listr)
 ```
 
 ```{r variabili, include=FALSE}
@@ -34,12 +35,7 @@ cartella <- './raster/output' #cartella in cui si trovano i raster in formato ti
 ```
 
 ```{r funzioni, include=FALSE}
-fun_violin_plot <- function(df) gg <- ggplot(df,aes(x='',y=df[,1])) +
-  geom_violin(na.rm = T,scale="count") + #funzione di ggplot per grafici a violino (boxplot+density). x bisogna segnarlo
-  scale_y_continuous(trans='log10') +
-  labs(x=NULL,y = NULL) #tolgo i label agli assi
 fun_nomi_plot <- function(plot,nomi) {plot + ggtitle(nomi)} #funzione per aggiungere il titolo ai plot già creati
-fun_punto_medio <- function(plot,medie) {plot + geom_point(y=medie) + scale_y_continuous(trans='log10')}
 ```
 
 ```{r raster files, echo=FALSE}
@@ -50,16 +46,38 @@ raster_files <- list.files(path=cartella,                #lista di file tif (nel
                                      recursive = T)
 rasters <- lapply(raster_files, rast)                   #carico tutti i raster
 
-rast_df <- lapply(rasters,terra::as.data.frame)         #per poter fare ggplot trasformo tutto in data.frame
+rast_df <- lapply(rasters,function(x) terra::as.data.frame(x,xy=T))         #per poter fare ggplot trasformo tutto in data.frame
 
 prova <- strsplit(raster_files, "(\\\\|/)+")            #si poteva fare anche con strestract in un solo passaggio, ma non ci sono riuscito
 raster_files <- sapply(prova, function(prova) paste0(prova[4],'-',prova[5]))
 for (i in seq_along(rast_df)){                          #questo loop serve solo a rinominare i dataframe nella lista, importante perché poi i plot prenderanno qui il titolo
   names(rast_df) <- raster_files
 }
-rast_df <- lapply(rast_df, setNames, 'value') #la colonna dei dataframe deve essere uguale
-medie <- lapply(rast_df,function(x) mean(x[,1]))
+rast_df <- lapply(rast_df, setNames, c('x','y','value')) #la colonna dei dataframe deve essere uguale
+medie <- lapply(rast_df,function(x) mean(x[,3]))
 rast_df_br <- bind_rows(rast_df,.id = "data_frame") #creo un'unica tabella con due colonne, una con il nome del raster, l'altra con i valori
+```
+
+```{r heatmap resistenza, message=FALSE, include=FALSE}
+resistenza_df <- rast_df[grepl("resistenza", names(rast_df))] #estraggo solo i dataframe della resistanza
+
+fun_plot_resistance <- function(x) ggplot(x,aes(x=x,y=y))+ #funzione per l'heatmap
+  geom_tile(aes(fill=value))+
+  scale_fill_gradient(low = "green3",
+                      high = "white",
+                      trans='log',
+                      label = function(x) sprintf("%.2f", x),
+                      limits=c(0.01, 1) #per avere le legende dei vari plot confrontabili
+                      ) +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(), #rimuovi testi che non servono come "value" in legenda
+        legend.key.width = unit(1.5,'cm'), #change legend key width
+        ) +
+  labs(x = NULL, y = NULL) + #tolgo i label agli assi
+  coord_fixed() #per avere un quadrato sempre
+plot_resistance <- lapply(resistenza_df,fun_plot_resistance)
+nomi_plot <- as.list(names(resistenza_df)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
+plot_resistance_norm <- mapply(plot=plot_resistance,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
 ```
 
 #### Resistenza
@@ -70,6 +88,9 @@ Metrica di quanto è resistente al movimento il paesaggio.
 
 -   0= resistenza nulla
 
+```{r plot heatmap resistenza, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
+do.call(grid.arrange,c(plot_resistance_norm, ncol = (length(raster_files)/(length(raster_dir)-1))))
+```
 ```{r plot resistenza, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
 ggplot(filter(rast_df_br,str_detect(data_frame,"resistenza")),aes(x=data_frame,y=value))+
   geom_violin(na.rm = T,scale="area")+
@@ -128,32 +149,4 @@ ggplot(filter(rast_df_br,str_detect(data_frame,"mortalita")),aes(x=data_frame,y=
   geom_violin(na.rm = T,scale="area")+
   scale_y_continuous(trans='log10') +
   labs(x=NULL,y = NULL)
-```
-
-```{r heatmap resistenza, eval=FALSE, message=FALSE, include=FALSE}
-#di seguito i passaggi per usare ggplot2 per visualizzare i raster resistenza
-resistance_norm_df <- lapply(resistance_norm,function(x) #ggplot usa dei dataframe
-  raster::as.data.frame(x,xy=TRUE #quindi trasformo i raster in dataframe, del valore e xy (che serve per fare i tile detta anche heatmap)
-                        ,centroids=T #il centroide pare non cambi niente ma mi sembrava corretto
-                        )
-  )
-nomecolonne <- c("x","y","value") #il valore ha il nome del raster, invece voglio lo stesso x tutti i raster, ovvero "value"
-resistance_norm_df <- lapply(resistance_norm_df,setNames,nomecolonne)
-fun_plot_resistance <- function(x) ggplot(x,aes(x=x,y=y))+ #funzione per l'heatmap
-  geom_tile(aes(fill=value))+
-  scale_fill_gradient(low = "green3",
-                      high = "white",
-                      trans='log',
-                      label = function(x) sprintf("%.2f", x),
-                      limits=c(0.01, 1) #per avere le legende dei vari plot confrontabili
-                      ) +
-  theme(legend.position = "bottom",
-        legend.title = element_blank(), #rimuovi testi che non servono come "value" in legenda
-        legend.key.width = unit(1.5,'cm'), #change legend key width
-        ) +
-  labs(x = NULL, y = NULL) + #tolgo i label agli assi
-  coord_fixed() #per avere un quadrato sempre
-plot_resistance_norm <- lapply(resistance_norm_df,fun_plot_resistance)
-nomi_plot <- as.list(names(resistance_norm_df)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
-plot_resistance_norm <- mapply(plot=plot_resistance_norm,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
 ```
