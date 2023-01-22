@@ -17,9 +17,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Calcolo delle metriche di analisi dell'agroecosistema
 
+I grafici delle metriche sono dei plot a violino, un ibrido tra i boxplot e i density plot:
+
+-   sulla y si trova il continuum di valori di ogni cella per ogni metrica calcolata
+
+-   la larghezza del grafico all'area (ossia al numero di celle) corrispondendi al valore.
+
 ```{r pacchetti, message=FALSE, include=FALSE}
 library(terra) # per analizzare il raster
-library(rasterVis)
+library(scales)
 library(httr)
 library(tidyverse)
 library(ggplot2)
@@ -80,7 +86,11 @@ nomi_plot <- as.list(names(resistenza_df)) #per aggiungere i titoli per ogni plo
 plot_resistance_norm <- mapply(plot=plot_resistance,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
 ```
 
-#### Resistenza
+#### Metriche di gradiente di paesaggio
+
+Si tratta di metriche dell'intero paesaggio, senza riferimento alla zona di lancio o presenza del parassitoide.
+
+##### Resistenza
 
 Metrica di quanto è resistente al movimento il paesaggio.
 
@@ -91,62 +101,67 @@ Metrica di quanto è resistente al movimento il paesaggio.
 ```{r plot heatmap resistenza, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
 do.call(grid.arrange,c(plot_resistance_norm, ncol = (length(raster_files)/(length(raster_dir)-1))))
 ```
+
 ```{r plot resistenza, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
 ggplot(filter(rast_df_br,str_detect(data_frame,"resistenza")),aes(x=data_frame,y=value))+
   geom_violin(na.rm = T,scale="area")+
-  scale_y_continuous(trans='log10') +
+  scale_y_continuous(
+    trans='log10'
+    ,breaks=trans_breaks('log10', function(x) 10^x),
+    labels=trans_format('log10', math_format(10^.x))    
+    ) +
   labs(x=NULL,y = NULL)
 ```
 
-#### Assorbanza
+##### Assorbanza
 
-Metrica di quanto è assorbente in paesaggio.\
-Assorbimento significa impossibilità di movimento, o incapacità di tornare indietro
+Assorbimento significa impossibilità di movimento, o incapacità di tornare indietro. I valori sono vicini a 1 o vicini a 0.
 
 -   1= assorbanza totale, ovvero mortalità
 
--   0= assorbanza nulla I valori o sono vicini a 1 o sono vicini a 0
+-   0= assorbanza nulla, ovvero nessun fattore di mortalità
 
 ```{r plot assorbanza, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
 ggplot(filter(rast_df_br,str_detect(data_frame,"assorbimento")),aes(x=data_frame,y=value))+
   geom_violin(na.rm = T,scale="area")+
-  scale_y_continuous(trans='log10') +
+  scale_y_continuous(
+    trans='log10'
+    ,breaks=trans_breaks('log10', function(x) 10^x),
+    labels=trans_format('log10', math_format(10^.x))    
+    ) +
   labs(x=NULL,y = NULL)
 ```
 
-### Metriche SAMC (Spatial Absorbing Markov Chain)
+#### Metriche SAMC (Spatial Absorbing Markov Chain)
 
 Sono le metriche calcolate dal punto di lancio della vespa samurai, che è il centro del raster.
 
-#### Dispersione
+##### Dispersione
 
-Con dispersione si intende la probabilità che la cella sarà visitata almeno una volta dal parassitoide.
+Con dispersione si intende la probabilità che la cella sarà visitata almeno una volta dal parassitoide. Il grafico indica quindi la capacità di dispersione in quel paesaggio per quel punto di lancio.
 
 ```{r plot dispersion, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
 ggplot(filter(rast_df_br,str_detect(data_frame,"dispersione")),aes(x=data_frame,y=value))+
   geom_violin(na.rm = T,scale="area")+
-  scale_y_continuous(trans='log10') +
+  scale_y_continuous(
+    trans='log10'
+    ,breaks=trans_breaks('log10', function(x) 10^x),
+    labels=trans_format('log10', math_format(10^.x))
+        ) +
   labs(x=NULL,y = NULL)
 ```
 
-#### Visite
+##### Mortalità
 
-Con "Visitation" si intende il numero di visite nella cella.
-
-```{r plot visitation, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
-ggplot(filter(rast_df_br,str_detect(data_frame,"visite")),aes(x=data_frame,y=value))+
-  geom_violin(na.rm = T,scale="area")+
-  scale_y_continuous(trans='log10') +
-  labs(x=NULL,y = NULL)
-```
-
-#### Mortalità
-
-Con Mortalità si intende la probabilità di assorbimento nella cella visitata.
+Con Mortalità si intende la probabilità di assorbimento nella cella visitata. Il grafico indica quindi la probabilità di "assorbimento" in quel paesaggio per quel punto di lancio
 
 ```{r plot mortality, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
 ggplot(filter(rast_df_br,str_detect(data_frame,"mortalita")),aes(x=data_frame,y=value))+
   geom_violin(na.rm = T,scale="area")+
-  scale_y_continuous(trans='log10') +
+  scale_y_continuous(
+    trans='log10'
+    ,breaks=trans_breaks('log10', function(x) 10^x),
+    labels=trans_format('log10', math_format(10^.x))
+    ) +
   labs(x=NULL,y = NULL)
 ```
