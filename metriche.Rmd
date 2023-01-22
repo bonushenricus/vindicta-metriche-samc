@@ -17,29 +17,101 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Calcolo delle metriche di analisi dell'agroecosistema
 
-```{r pacchetti, echo=FALSE, message=FALSE}
-library(raster) # per analizzare il raster
+```{r pacchetti, message=FALSE, include=FALSE}
+library(terra) # per analizzare il raster
+library(rasterVis)
 library(httr)
 library(tidyverse)
 library(ggplot2)
 library(terrainr)
-library(patchwork)
 library(stringr)
 library(gridExtra)
+library(dplyr)
 ```
 
-### Visualizzazione della resistenza
+```{r variabili, include=FALSE}
+cartella <- './raster/output' #cartella in cui si trovano i raster in formato tif
+```
 
-```{r resistance, echo=FALSE, message=FALSE}
-#options(width = 200) #studiare 
-cartella <- './raster' #cartella in cui si trovano i raster in formato tif
-files <- list.files(path = cartella,pattern = '*resistance_norm.tif',full.names = T)
-resistance_norm <- vector("list", length(files))
-names(resistance_norm) <- str_extract(files, "(?<=\\+)[[:alpha:]]+(?=_)") #i file iniziano con + e con il nome dell'azienda
-for (i in 1:length(files)) { # importo i raster
-  resistance_norm[[i]] <- raster(files[i])
+```{r funzioni, include=FALSE}
+fun_violin_plot <- function(df) gg <- ggplot(df,aes(x='',y=df[,1])) +
+  geom_violin(na.rm = T,scale="count") + #funzione di ggplot per grafici a violino (boxplot+density). x bisogna segnarlo
+  scale_y_continuous(trans='log10') +
+  labs(x=NULL,y = NULL) #tolgo i label agli assi
+fun_nomi_plot <- function(plot,nomi) {plot + ggtitle(nomi)} #funzione per aggiungere il titolo ai plot già creati
+fun_punto_medio <- function(plot,medie) {plot + geom_point(y=medie) + scale_y_continuous(trans='log10')}
+```
+
+```{r raster files, echo=FALSE}
+raster_dir <- list.dirs(path = cartella)
+raster_files <- list.files(path=cartella,                #lista di file tif (nelle cartelle ci sono anche i README.md)
+                                     pattern = "\\.tif$",
+                                     full.names = TRUE,
+                                     recursive = T)
+rasters <- lapply(raster_files, rast)                   #carico tutti i raster
+
+rast_df <- lapply(rasters,terra::as.data.frame)         #per poter fare ggplot trasformo tutto in data.frame
+
+prova <- strsplit(raster_files, "(\\\\|/)+")            #si poteva fare anche con strestract in un solo passaggio, ma non ci sono riuscito
+raster_files <- sapply(prova, function(prova) paste0(prova[4],'-',prova[5]))
+for (i in seq_along(rast_df)){                          #questo loop serve solo a rinominare i dataframe nella lista, importante perché poi i plot prenderanno qui il titolo
+  names(rast_df) <- raster_files
 }
-#di seguito i passaggi per usare ggplot2 per visualizzare la carta
+rast_df <- lapply(rast_df, setNames, 'value') #la colonna dei dataframe deve essere uguale
+medie <- lapply(rast_df,function(x) mean(x[,1]))
+rast_df_br <- bind_rows(rast_df,.id = "data_frame") #creo un'unica tabella con due colonne, una con il nome del raster, l'altra con i valori
+```
+####Resistenza
+Metrica di quanto è resistente al movimento il paesaggio.
+1= resistenza totale
+0= resistenza nulla
+```{r plot resistenza, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
+ggplot(filter(rast_df_br,str_detect(data_frame,"resistenza")),aes(x=data_frame,y=value))+
+  geom_violin(na.rm = T,scale="area")+
+  scale_y_continuous(trans='log10') +
+  labs(x=NULL,y = NULL)
+```
+
+####Assorbanza
+Metrica di quanto è assorbente in paesaggio. Assorbimento significa impossibilità di movimento, o incapacità di tornare indietro
+1= assorbanza totale, ovvero mortalità
+0= assorbanza nulla
+I valori o sono vicini a 1 o sono vicini a 0
+```{r plot assorbanza, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
+ggplot(filter(rast_df_br,str_detect(data_frame,"assorbimento")),aes(x=data_frame,y=value))+
+  geom_violin(na.rm = T,scale="area")+
+  scale_y_continuous(trans='log10') +
+  labs(x=NULL,y = NULL)
+```
+###Metriche SAMC (Spatial Absorbing Markov Chain)
+Sono le metriche calcolate dal punto di lancio della vespa samurai, che è il centro del raster.
+####Dispersione
+Con dispersione si intende la probabilità che la cella sia stata visitata almeno una volta dal parassitoide.
+```{r plot dispersion, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
+ggplot(filter(rast_df_br,str_detect(data_frame,"dispersione")),aes(x=data_frame,y=value))+
+  geom_violin(na.rm = T,scale="area")+
+  scale_y_continuous(trans='log10') +
+  labs(x=NULL,y = NULL)
+```
+####Visite
+Con "Visitation" si intende il numero di visite nella cella.
+```{r plot visitation, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
+ggplot(filter(rast_df_br,str_detect(data_frame,"visite")),aes(x=data_frame,y=value))+
+  geom_violin(na.rm = T,scale="area")+
+  scale_y_continuous(trans='log10') +
+  labs(x=NULL,y = NULL)
+```
+####Mortalità
+Con Mortalità si intende la probabilità di assorbimento nella cella visitata.
+```{r plot mortality, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
+ggplot(filter(rast_df_br,str_detect(data_frame,"mortalita")),aes(x=data_frame,y=value))+
+  geom_violin(na.rm = T,scale="area")+
+  scale_y_continuous(trans='log10') +
+  labs(x=NULL,y = NULL)
+```
+
+```{r heatmap resistenza, eval=FALSE, message=FALSE, include=FALSE}
+#di seguito i passaggi per usare ggplot2 per visualizzare i raster resistenza
 resistance_norm_df <- lapply(resistance_norm,function(x) #ggplot usa dei dataframe
   raster::as.data.frame(x,xy=TRUE #quindi trasformo i raster in dataframe, del valore e xy (che serve per fare i tile detta anche heatmap)
                         ,centroids=T #il centroide pare non cambi niente ma mi sembrava corretto
@@ -63,31 +135,5 @@ fun_plot_resistance <- function(x) ggplot(x,aes(x=x,y=y))+ #funzione per l'heatm
   coord_fixed() #per avere un quadrato sempre
 plot_resistance_norm <- lapply(resistance_norm_df,fun_plot_resistance)
 nomi_plot <- as.list(names(resistance_norm_df)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
-fun_nomi_plot <- function(plot,nomi) {plot + ggtitle(nomi)} #funzione per aggiungere il titolo ai plot già creati
 plot_resistance_norm <- mapply(plot=plot_resistance_norm,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
-```
-
-```{r heatmap resistenza, echo=FALSE, fig.width=8, dev='svg',dpi=300}
-do.call("grid.arrange", c(plot_resistance_norm, ncol = length(plot_resistance_norm))) #grid.arrange serve a visualizzare i plot nella lista uno a fianco dell'altro (tante colonne quanti sono i plot nella lista). Purtroppo non riesco a capire come farla più grande
-```
-
-
-```{r violin resistenza, echo=FALSE}
-#non posso far diventare la lista di dataframe dai raster un solo dataframe, perché potrebbero essere di diversa grandezza. quindi devo lavorare direttamente su resistance_norm_df già creato in precedenza, cioé la lista di dataframe
-fun_violin_plot <- function(df) gg <- ggplot(df,aes(x='',y=value)) +
-  geom_violin(na.rm = T,scale="count") + #funzione di ggplot per grafici a violino (boxplot+density). x bisogna segnarlo
-  coord_cartesian (ylim = c(0, 1)) + #per avere grafici non automatici nelle scale, quindi comparabili 
-  labs(x = NULL, y = NULL) #tolgo i label agli assi
-resistance_violin_plot <- lapply(resistance_norm_df,fun_violin_plot) #la funzione va per ogni oggetto della lista di dataframe dei valori ricavati dai raster
-# riprendo i nomi dei plot
-resistance_violin_plot <- mapply(plot=resistance_violin_plot,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
-resistance_norm_df_v <- lapply(resistance_norm,function(x) #creare una lista di vettori solo con i valori per fare le medie
-  as.vector(x))
-media_plot <- lapply(resistance_norm_df_v,mean) #calcolo la media della resistenza
-fun_plot_medie <- function(plot,medie) {plot + geom_point(y=medie)} #funzione per aggiungere il punto medio ai plot già creati
-resistance_violin_plot <- mapply(plot=resistance_violin_plot,medie=media_plot,fun_plot_medie,SIMPLIFY = F) #aggiungo il punto medio
-```
-
-```{r plot violin resistenza, echo=FALSE, fig.width=8,dev='svg'}
-do.call("grid.arrange", c(resistance_violin_plot, ncol = length(resistance_violin_plot))) #grid.arrange serve a visualizzare i plot nella lista uno a fianco dell'altro (tante colonne quanti sono i plot nella lista). Purtroppo non riesco a capire come farla più grande
 ```
