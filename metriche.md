@@ -41,7 +41,7 @@ tornare indietro. I valori sono vicini a 1 o vicini a 0.
 
 ![](metriche_files/figure-markdown_github/plot%20assorbanza-1.svg)
 
-#### Metriche SAMC (Spatial Absorbing Markov Chain)
+#### Metriche SAMC (Spatial Absorbing Markov Chain) Marx et al. (2020)
 
 Sono le metriche calcolate dal punto di lancio della vespa samurai, che
 è il centro del raster.
@@ -61,3 +61,16 @@ visitata. Il grafico indica quindi la probabilità di “assorbimento” in
 quel paesaggio per quel punto di lancio
 
 ![](metriche_files/figure-markdown_github/plot%20mortality-1.svg)
+
+<div id="refs" class="references csl-bib-body hanging-indent">
+
+<div id="ref-samc" class="csl-entry">
+
+Marx, Andrew J., Chao Wang, Jorge A. Sefair, Miguel A. Acevedo, and
+Robert J. Fletcher Jr. 2020. “Samc: An r Package for Connectivity
+Modeling with Spatial Absorbing Markov Chains.” *Ecography*.
+<https://onlinelibrary.wiley.com/doi/abs/10.1111/ecog.04891>.
+
+</div>
+
+</div>

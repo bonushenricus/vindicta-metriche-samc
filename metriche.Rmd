@@ -2,6 +2,7 @@
 title: "metriche"
 author: "Enrico Gabrielli F.A.R.M. Facilitazioni Agroecologiche Regionali Mobili"
 date: "17/1/2023"
+bibliography: vindicta_samc.bib
 output:
   md_document:
     variant: markdown_github
@@ -132,7 +133,7 @@ ggplot(filter(rast_df_br,str_detect(data_frame,"assorbimento")),aes(x=data_frame
   labs(x=NULL,y = NULL)
 ```
 
-#### Metriche SAMC (Spatial Absorbing Markov Chain)
+#### Metriche SAMC (Spatial Absorbing Markov Chain) @samc
 
 Sono le metriche calcolate dal punto di lancio della vespa samurai, che è il centro del raster.
 
