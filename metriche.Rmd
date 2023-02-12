@@ -38,7 +38,7 @@ library(listr)
 ```
 
 ```{r variabili, include=FALSE}
-cartella <- './raster/output' #cartella in cui si trovano i raster in formato tif
+cartella <- './cartografia/output' #cartella in cui si trovano i raster in formato tif
 ```
 
 ```{r funzioni, include=FALSE}

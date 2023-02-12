@@ -18,6 +18,7 @@
 #- 13 Aree non adatte: questa classe può non essere definita nel tif, ed avere valore NULL, nello script verrà definita automaticamente 13<-NULL
 #si consiglia di partire da dei geotiff di 1 metro di risoluzione
 library(grainchanger)
+library(sf)
 library(raster)
 library(future)
 library(samc)
@@ -25,22 +26,31 @@ library(dplyr)
 
 #variabili: 10 metri di home-range e 20 metri di response grain scelte in base ai risultati di questo articolo
 #Lowenstein D, Andrews H, Hilton R, et al (2019) Establishment in an Introduced Range: Dispersal Capacity and Winter Survival of Trissolcus japonicus, an Adventive Egg Parasitoid. Insects 10
+predictor_grain <- 1 # la risoluzione di rasterizzazione
 scale_of_effect <- 10 #la home-range (in pixel di risoluzione) di movimento dei parassitoidi, ovvero gli spostamenti di andata e ritorno per la ricerca del cibo e degli ospiti, di breve raggio e di breve periodo
 response_grain <- 20 #in pixel di risoluzione la soglia dei movimenti di dispersione del parassitoide, ovvero non di breve periodo e senza ritorno.
 
-#qui sotto importiamo i raster degli habitat, in una lista in cui ogni oggetto della lista abbia il nome dell'azienda
-cartella <- './raster/output' #cartella in cui si trovano i raster habitat in formato tif
+#qui sotto importiamo il vettore poligonale degli habitat, dell'azienda in studio, e rasterizziamo
+cartella <- './cartografia/output' #cartella delle elaborazioni finali
 setwd(cartella) #setti la stessa cartella come quella in cui salverai le elaborazioni
-azienda <- "ognibene" #setti il nome dell'azienda
-file <- paste0(azienda,'.tif')
-habitat_raster <- raster(paste0('../fotointerpretazione/habitat/',file))
+azienda <- "santerini" #setti il nome dell'azienda
+file <- paste0(azienda,'.gpkg')
+habitat <- sf::read_sf(paste0('../fotointerpretazione/vector/',file))
+habitat_raster <- raster::rasterize(
+  habitat,
+  raster(habitat,resolution=predictor_grain),"classe")
+remove(habitat)
 
 #classe 13 è habitat non adatto (serve comunque riclassificare a 13 le aree vuote, per poter andare avanti)
-habitat <-
+habitat_raster <-
   reclassify(
     habitat_raster,
     matrix(c(NA,13),ncol=2,byrow = T)
   )
+raster::writeRaster(
+  habitat_raster,
+  filename = paste0('../fotointerpretazione/raster/',azienda,'.tif'),
+  overwrite=T)
 
 #variabili calcolate in base alla risoluzione del raster
 scale_pixel <- ceiling(scale_of_effect/raster::xres(habitat_raster)) #lo scale_pixel è la grandezza in pixel dello scale_of_effect
@@ -564,7 +574,7 @@ resistance_norm <-
 remove(resistance)
 raster::writeRaster(
   resistance_norm,
-  filename = paste0('./resistenza/',azienda,".tif"),
+  filename = paste0('./1_resistenza/',azienda,".tif"),
   overwrite=T
 )
 
@@ -586,7 +596,7 @@ remove(absorbance)
 
 raster::writeRaster(
   absorbance_norm,
-  filename = paste0('./assorbanza/',azienda,".tif"),
+  filename = paste0('./2_assorbimento/',azienda,".tif"),
   overwrite=T
 )
 
@@ -628,7 +638,7 @@ dispersione_map <-
   )
 raster::writeRaster(
   dispersione_map,
-  filename = paste0('./dispersione',azienda,".tif"),
+  filename = paste0('./3_dispersione/',azienda,".tif"),
   overwrite=T
 )
 
@@ -645,7 +655,7 @@ visita_map <-
   )
 raster::writeRaster(
   visita_map,
-  filename = paste0('./visite/',azienda,".tif"),
+  filename = paste0('./4_visite/',azienda,".tif"),
   overwrite=T
 )
 
@@ -670,6 +680,6 @@ mortalita_map <-
   )
 raster::writeRaster(
   mortalita_map,
-  filename = paste0('./mortalita/',azienda,".tif"),
+  filename = paste0('./5_mortalita/',azienda,".tif"),
   overwrite=T
 )
