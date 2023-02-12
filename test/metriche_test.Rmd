@@ -89,13 +89,13 @@ plot_resistance_norm <- mapply(plot=plot_resistance,nomi=nomi_plot,fun_nomi_plot
 ```{r heatmap assorbimento, message=FALSE, include=FALSE}
 assorbimento_df <- rast_df[grepl("assorbimento", names(rast_df))] #estraggo solo i dataframe della resistanza
 
-fun_plot_absorbance <- function(x) ggplot(x,aes(x=x,y=y))+ #funzione per l'heatmap
+fun_plot_assorbance <- function(x) ggplot(x,aes(x=x,y=y))+ #funzione per l'heatmap
   stat_contour_filled(aes(z=value,fill='green'),bins = 1,show.legend = F)+
   labs(x = NULL, y = NULL) + #tolgo i label agli assi
   coord_fixed() #per avere un quadrato sempre
-plot_absorbance <- lapply(assorbimento_df,fun_plot_absorbance)
+plot_assorbance <- lapply(assorbimento_df,fun_plot_assorbance)
 nomi_plot <- as.list(names(assorbimento_df)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
-plot_absorbance_norm <- mapply(plot=plot_absorbance,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
+plot_assorbance_norm <- mapply(plot=plot_assorbance,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
 ```
 
 ```{r heatmap dispersione, message=FALSE, include=FALSE}
