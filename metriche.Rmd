@@ -26,6 +26,7 @@ I grafici delle metriche sono dei plot a violino, un ibrido tra i boxplot e i de
 
 ```{r pacchetti, message=FALSE, include=FALSE}
 library(terra) # per analizzare il raster
+library(raster)
 library(scales)
 library(httr)
 library(tidyverse)
@@ -55,7 +56,7 @@ rasters <- lapply(raster_files, rast)                   #carico tutti i raster
 
 rast_df <- lapply(rasters,function(x) terra::as.data.frame(x,xy=T))         #per poter fare ggplot trasformo tutto in data.frame
 
-prova <- strsplit(raster_files, "(\\\\|/)+")            #si poteva fare anche con strestract in un solo passaggio, ma non ci sono riuscito
+prova <- strsplit(raster_files, "(\\\\|/)+")            #si poteva fare anche con strextract in un solo passaggio, ma non ci sono riuscito
 raster_files <- sapply(prova, function(prova) paste0(prova[4],'-',prova[5]))
 for (i in seq_along(rast_df)){                          #questo loop serve solo a rinominare i dataframe nella lista, importante perché poi i plot prenderanno qui il titolo
   names(rast_df) <- raster_files
@@ -63,6 +64,35 @@ for (i in seq_along(rast_df)){                          #questo loop serve solo 
 rast_df <- lapply(rast_df, setNames, c('x','y','value')) #la colonna dei dataframe deve essere uguale
 medie <- lapply(rast_df,function(x) mean(x[,3]))
 rast_df_br <- bind_rows(rast_df,.id = "data_frame") #creo un'unica tabella con due colonne, una con il nome del raster, l'altra con i valori
+```
+
+```{r foto_aeree, message=FALSE, include=FALSE}
+cartella_foto_aeree <- './cartografia/output/0_foto_aeree'
+foto_aeree_files <- list.files(path=cartella_foto_aeree,                #lista di file tif
+                           pattern = "\\.tif$",
+                           full.names = TRUE,
+                           recursive = T)
+wms_raster <- mapply(function(x) stack(x),foto_aeree_files) #carico la foto aerea nelle 3 componenti RGB - per una questione di semplicità non assegno l'estensione sul crs
+
+fun_plot_rgb <- function(raster) ggplot() +
+  geom_spatial_rgb(
+    data = raster,
+    mapping = aes(
+      x=x,
+      y=y,
+      r=red,
+      g=green,
+      b=blue
+    )) +
+    theme(legend.position = "bottom",
+          legend.title = element_blank(), #rimuovi testi che non servono come "value" in legenda
+          legend.key.width = unit(1.5,'cm'), #change legend key width
+        ) +
+  labs(x = NULL, y = NULL) #tolgo i label agli assi
+
+plot_foto_aeree <- lapply(wms_raster,fun_plot_rgb)
+nomi_plot <- as.list(names(wms_raster)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
+plot_foto_aeree <- mapply(plot=plot_foto_aeree,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
 ```
 
 ```{r heatmap resistenza, message=FALSE, include=FALSE}
@@ -83,11 +113,11 @@ fun_plot_resistance <- function(x) ggplot(x,aes(x=x,y=y))+ #funzione per l'heatm
   coord_fixed() #per avere un quadrato sempre
 plot_resistance <- lapply(resistenza_df,fun_plot_resistance)
 nomi_plot <- as.list(names(resistenza_df)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
-plot_resistance_norm <- mapply(plot=plot_resistance,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
+plot_resistance <- mapply(plot=plot_resistance,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
 ```
 
 ```{r heatmap assorbimento, message=FALSE, include=FALSE}
-assorbimento_df <- rast_df[grepl("assorbimento", names(rast_df))] #estraggo solo i dataframe della resistanza
+assorbimento_df <- rast_df[grepl("assorbimento", names(rast_df))] #estraggo solo i dataframe dell'assorbimento
 
 fun_plot_absorbance <- function(x) ggplot(x,aes(x=x,y=y))+ #funzione per l'heatmap
   stat_contour_filled(aes(z=value,fill='green'),bins = 1,show.legend = F)+
@@ -95,11 +125,11 @@ fun_plot_absorbance <- function(x) ggplot(x,aes(x=x,y=y))+ #funzione per l'heatm
   coord_fixed() #per avere un quadrato sempre
 plot_absorbance <- lapply(assorbimento_df,fun_plot_absorbance)
 nomi_plot <- as.list(names(assorbimento_df)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
-plot_absorbance_norm <- mapply(plot=plot_absorbance,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
+plot_absorbance <- mapply(plot=plot_absorbance,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
 ```
 
 ```{r heatmap dispersione, message=FALSE, include=FALSE}
-dispersione_df <- rast_df[grepl("dispersione", names(rast_df))] #estraggo solo i dataframe della resistanza
+dispersione_df <- rast_df[grepl("dispersione", names(rast_df))] #estraggo solo i dataframe della dispersione
 
 fun_plot_dispersion <- function(x) ggplot(x,aes(x=x,y=y))+ #funzione per l'heatmap
   geom_tile(aes(fill=value))+
@@ -116,11 +146,11 @@ fun_plot_dispersion <- function(x) ggplot(x,aes(x=x,y=y))+ #funzione per l'heatm
   coord_fixed() #per avere un quadrato sempre
 plot_dispersion <- lapply(dispersione_df,fun_plot_dispersion)
 nomi_plot <- as.list(names(dispersione_df)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
-plot_dispersion_norm <- mapply(plot=plot_dispersion,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
+plot_dispersion <- mapply(plot=plot_dispersion,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
 ```
 
 ```{r heatmap mortalita, message=FALSE, include=FALSE}
-mortalita_df <- rast_df[grepl("mortalita", names(rast_df))] #estraggo solo i dataframe della resistanza
+mortalita_df <- rast_df[grepl("mortalita", names(rast_df))] #estraggo solo i dataframe della mortalità
 
 fun_plot_mortality <- function(x) ggplot(x,aes(x=x,y=y))+ #funzione per l'heatmap
   geom_tile(aes(fill=value))+
@@ -137,7 +167,18 @@ fun_plot_mortality <- function(x) ggplot(x,aes(x=x,y=y))+ #funzione per l'heatma
   coord_fixed() #per avere un quadrato sempre
 plot_mortality <- lapply(mortalita_df,fun_plot_mortality)
 nomi_plot <- as.list(names(mortalita_df)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
-plot_mortality_norm <- mapply(plot=plot_mortality,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
+plot_mortality <- mapply(plot=plot_mortality,nomi=nomi_plot,fun_nomi_plot,SIMPLIFY = F) #ho due liste, una dei plot e una dei nomi, applico una funzione multipla, simplify=F serve a ricreare due liste, altrimenti per ogni layer dei plot usa la funzione
+```
+
+#### Foto aeree 2020 AGREA NIR
+
+Queste sono le foto aeree usate per la fotointerpretazione, tratte da [geoportale Emilia-Romagna \> wms \> ortofoto \> AGREA 2020 NIR](https://geoportale.regione.emilia-romagna.it/servizi/servizi-ogc/elenco-capabilities-dei-servizi-wms/cartografia-di-base/service-35). La fotointepretazione è stata supportata da:
+
+-   elaborazioni LIDAR risoluzione 1 metro del 2008-2013 quando presenti per l'area di studio, per ricavare la posizione delle arboree e le loro altezze.
+
+-   dati AGREA 2021 e 2022, disponibili qui [agreagestione file > AppezzAziendaGrafici](https://agreagestione.regione.emilia-romagna.it/agrea-file/AppezzAziendaGrafici/)
+```{r plot foto aeree, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
+do.call(grid.arrange,c(plot_foto_aeree, ncol = (length(raster_files)/(length(raster_dir)-1))))
 ```
 
 #### Metriche di gradiente di paesaggio
@@ -153,7 +194,7 @@ Metrica di quanto è resistente al movimento il paesaggio.
 -   0= resistenza nulla
 
 ```{r plot heatmap resistenza, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
-do.call(grid.arrange,c(plot_resistance_norm, ncol = (length(raster_files)/(length(raster_dir)-1))))
+do.call(grid.arrange,c(plot_resistance, ncol = (length(raster_files)/(length(raster_dir)-1))))
 ```
 
 ```{r plot resistenza, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
@@ -176,7 +217,7 @@ Assorbimento significa impossibilità di movimento, o incapacità di tornare ind
 -   0= assorbanza nulla, ovvero nessun fattore di mortalità
 
 ```{r plot heatmap assorbimento, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
-do.call(grid.arrange,c(plot_absorbance_norm, ncol = (length(raster_files)/(length(raster_dir)-1))))
+do.call(grid.arrange,c(plot_absorbance, ncol = (length(raster_files)/(length(raster_dir)-1))))
 ```
 
 ```{r plot assorbanza, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
@@ -199,7 +240,7 @@ Sono le metriche calcolate dal punto di lancio della vespa samurai, che è il ce
 Con dispersione si intende la probabilità che la cella sarà visitata almeno una volta dal parassitoide. Il grafico indica quindi la capacità di dispersione in quel paesaggio per quel punto di lancio.
 
 ```{r plot heatmap dispersione, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
-do.call(grid.arrange,c(plot_dispersion_norm, ncol = (length(raster_files)/(length(raster_dir)-1))))
+do.call(grid.arrange,c(plot_dispersion, ncol = (length(raster_files)/(length(raster_dir)-1))))
 ```
 
 ```{r plot dispersion, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
@@ -218,7 +259,7 @@ ggplot(filter(rast_df_br,str_detect(data_frame,"dispersione")),aes(x=data_frame,
 Con Mortalità si intende la probabilità di assorbimento nella cella visitata. Il grafico indica quindi la probabilità di "assorbimento" in quel paesaggio per quel punto di lancio
 
 ```{r plot heatmap mortalita, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}
-do.call(grid.arrange,c(plot_mortality_norm, ncol = (length(raster_files)/(length(raster_dir)-1))))
+do.call(grid.arrange,c(plot_mortality, ncol = (length(raster_files)/(length(raster_dir)-1))))
 ```
 
 ```{r plot mortality, echo=FALSE, fig.ext='svg', fig.width=10, message=FALSE, warning=FALSE}

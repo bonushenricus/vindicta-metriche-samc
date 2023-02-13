@@ -2,3 +2,4 @@
 .Rhistory
 .RData
 .Ruserdata
+h -u --force_with-lease origin main

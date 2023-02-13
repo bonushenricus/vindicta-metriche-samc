@@ -1,5 +1,5 @@
 #git init
 git add --all
-git commit -m "modifica readme"
+git commit -m "aggiunta mappe"
 #git remote add origin "url del proprio repository github"
-git push -u origin main
+git push -u origin main --force
