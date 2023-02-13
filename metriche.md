@@ -38,9 +38,9 @@ Metrica di quanto è resistente al movimento il paesaggio.
 
 Assorbimento significa impossibilità di movimento, o incapacità di tornare indietro. I valori sono vicini a 1 o vicini a 0.
 
--   1= assorbanza totale, ovvero mortalità. Nella carta le aree sono quelle trasparenti.
+-   1= assorbanza totale. Nella carta le aree con assorbanza totale sono visualizzate come trasparenti.
 
--   0= assorbanza nulla, ovvero nessun fattore di mortalità
+-   0= assorbanza nulla, ovvero nessun ulteriore fattore di impossibilità rispetto alla resistenza
 
 ![](metriche_files/figure-markdown_github/plot%20heatmap%20assorbimento-1.svg)
 
@@ -52,7 +52,7 @@ Sono le metriche calcolate dal punto di lancio della vespa samurai, che è il ce
 
 ##### Dispersione
 
-Con dispersione si intende la probabilità che la cella sarà visitata almeno una volta dal parassitoide. Il grafico indica quindi la capacità di dispersione in quel paesaggio per quel punto di lancio.
+Con dispersione si intende la probabilità che la cella sarà visitata almeno una volta dalle 90 femmine lanciate. Non si prendono in considerazione le generazioni successive e il fattore vento. Il grafico indica quindi la capacità di dispersione delle 90 femmine in quel paesaggio per quel punto di lancio. Nelle mappe sono visualizzati con un gradiente i dati da 1 a 100 per cento. Le zone grigie hanno una probabilità di dispersione inferiore a 1 per cento.
 
 ![](metriche_files/figure-markdown_github/plot%20heatmap%20dispersione-1.svg)
 
@@ -60,7 +60,7 @@ Con dispersione si intende la probabilità che la cella sarà visitata almeno un
 
 ##### Mortalità
 
-Con Mortalità si intende la probabilità di assorbimento nella cella visitata. Il grafico indica quindi la probabilità di "assorbimento" in quel paesaggio per quel punto di lancio
+Con Mortalità si intende la probabilità di mortalità, che è data dall'insieme dei fattori di resistenza e assorbimento nella cella visitata per quel punto di lancio, secondo la dispersione calcolata. La mortalità è maggiore in vicinanza delle aree di assorbimento, che però per il modello non vengono raggiunte e superate, quindi al loro interno non c'è mortalità. Maggiore è la probabilità di dispersione in una cella maggiore è la probabilità di mortalità. Nella mappa con scala logaritmica si visualizza la mappa anche nelle zone di dispersione trascurabile (\<1%) per agevolare la comprensione del concetto di mortalità
 
 ![](metriche_files/figure-markdown_github/plot%20heatmap%20mortalita-1.svg)
 
