@@ -66,7 +66,7 @@ medie <- lapply(rast_df,function(x) mean(x[,3]))
 rast_df_br <- bind_rows(rast_df,.id = "data_frame") #creo un'unica tabella con due colonne, una con il nome del raster, l'altra con i valori
 ```
 
-```{r foto_aeree, message=FALSE, include=FALSE}
+```{r foto_aeree, message=FALSE, warning=FALSE, include=FALSE}
 cartella_foto_aeree <- './cartografia/output/0_foto_aeree'
 foto_aeree_files <- list.files(path=cartella_foto_aeree,                #lista di file tif
                            pattern = "\\.tif$",
@@ -88,7 +88,8 @@ fun_plot_rgb <- function(raster) ggplot() +
           legend.title = element_blank(), #rimuovi testi che non servono come "value" in legenda
           legend.key.width = unit(1.5,'cm'), #change legend key width
         ) +
-  labs(x = NULL, y = NULL) #tolgo i label agli assi
+  labs(x = NULL, y = NULL)+ #tolgo i label agli assi
+  coord_fixed() #per avere un quadrato sempre
 
 plot_foto_aeree <- lapply(wms_raster,fun_plot_rgb)
 nomi_plot <- as.list(names(wms_raster)) #per aggiungere i titoli per ogni plot faccio una lista dei nomi dei raster-dataframe
