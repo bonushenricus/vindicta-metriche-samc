@@ -1,5 +1,5 @@
 #git init
 git add --all
-git commit -m "aggiunta mappe"
+git commit -m "aggiunta foto aeree"
 #git remote add origin "url del proprio repository github"
-git push -u origin main --force
+git push -u origin main
