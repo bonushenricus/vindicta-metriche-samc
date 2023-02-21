@@ -33,7 +33,7 @@ response_grain <- 20 #in pixel di risoluzione la soglia dei movimenti di dispers
 #qui sotto importiamo il vettore poligonale degli habitat, dell'azienda in studio, e rasterizziamo
 cartella <- './cartografia/output' #cartella delle elaborazioni finali
 setwd(cartella) #setti la stessa cartella come quella in cui salverai le elaborazioni
-azienda <- "innocenti" #setti il nome dell'azienda
+azienda <- "bindon" #setti il nome dell'azienda
 file <- paste0(azienda,'.gpkg')
 habitat <- sf::read_sf(paste0('../fotointerpretazione/vector/',file))
 habitat_raster <- raster::rasterize(
