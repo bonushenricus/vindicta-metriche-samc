@@ -9,7 +9,7 @@ mappe_files <- list.files(path=mappe_cartella,                #lista di file tif
                           recursive = T)
 mappe_nomi <- strsplit(mappe_files, "(\\\\|/)+") #per dare i nomi ai file
 mappe_nomi <- sapply(mappe_nomi, function(prova) prova[5])
-cartella_foto_aeree <- './cartografia/output/0_foto_aeree/'
+cartella_foto_aeree <- './cartografia/fotointerpretazione/foto_aeree/'
 mappe_nomi <- sapply(mappe_nomi,function(x) paste0(cartella_foto_aeree,x))
 mappe_rast <- lapply(mappe_files, raster) #i raster degli habitat vengono aperti per poter ricavarne i dati per interrogare il servizio wms
 bbox <- lapply(mappe_rast,raster::bbox)
