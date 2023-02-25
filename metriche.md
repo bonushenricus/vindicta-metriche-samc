@@ -4,14 +4,15 @@
 
 ### Calcolo delle metriche di analisi dell’agroecosistema
 
-I grafici delle metriche sono dei plot a violino, un ibrido tra i
-boxplot e i density plot:
+I grafici delle metriche sono dei plot a “ridge,” ossia curve:
 
--   sulla y si trova il continuum di valori di ogni cella per ogni
-    metrica calcolata
+-   la y, ovvero l’altezza delle curve, indica il numero di celle del
+    raster
 
--   la larghezza del grafico all’area (ossia al numero di celle)
-    corrispondendi al valore.
+-   x è il valore della metrica, per la resistenza in scala normale, per
+    le altre metriche in scala logaritmica in base 10.
+
+La scala dei colori utilizzata corrisponde a quella delle mappe.
 
 #### Foto aeree 2020 AGREA NIR
 
@@ -43,8 +44,6 @@ Metrica di quanto è resistente al movimento il paesaggio.
 
 ![](metriche_files/figure-markdown_github/plot%20heatmap%20resistenza-1.svg)
 
-![](metriche_files/figure-markdown_github/plot%20resistenza-1.svg)
-
 ##### Assorbanza
 
 Assorbimento significa impossibilità di movimento, o incapacità di
@@ -57,8 +56,6 @@ tornare indietro. I valori sono vicini a 1 o vicini a 0.
     impossibilità rispetto alla resistenza
 
 ![](metriche_files/figure-markdown_github/plot%20heatmap%20assorbimento-1.svg)
-
-![](metriche_files/figure-markdown_github/plot%20assorbanza-1.svg)
 
 #### Metriche SAMC (Spatial Absorbing Markov Chain) Marx et al. (2020)
 
@@ -77,8 +74,6 @@ probabilità di dispersione inferiore a 1 per cento.
 
 ![](metriche_files/figure-markdown_github/plot%20heatmap%20dispersione-1.svg)
 
-![](metriche_files/figure-markdown_github/plot%20dispersion-1.svg)
-
 ##### Mortalità
 
 Con Mortalità si intende la probabilità di mortalità, che è data
@@ -93,8 +88,6 @@ trascurabile (\<1%) per agevolare la comprensione del concetto di
 mortalità
 
 ![](metriche_files/figure-markdown_github/plot%20heatmap%20mortalita-1.svg)
-
-![](metriche_files/figure-markdown_github/plot%20mortality-1.svg)
 
 <div id="refs" class="references csl-bib-body hanging-indent">
 
