@@ -27,7 +27,7 @@ La fotointepretazione è stata supportata da:
 
 -   dati AGREA 2021 e 2022, disponibili qui [agreagestione file >
     AppezzAziendaGrafici](https://agreagestione.regione.emilia-romagna.it/agrea-file/AppezzAziendaGrafici/)
-    ![](metriche_files/figure-markdown_github/plot%20foto%20aeree-1.svg)
+    ![](metriche_files/figure-markdown_github/plot%20foto%20aeree-1.png)
 
 #### Metriche di gradiente di paesaggio
 
@@ -42,7 +42,7 @@ Metrica di quanto è resistente al movimento il paesaggio.
 
 -   0= resistenza nulla
 
-![](metriche_files/figure-markdown_github/plot%20heatmap%20resistenza-1.svg)
+![](metriche_files/figure-markdown_github/plot%20heatmap%20resistenza-1.png)
 
 ##### Assorbanza
 
@@ -55,7 +55,7 @@ tornare indietro. I valori sono vicini a 1 o vicini a 0.
 -   0= assorbanza nulla, ovvero nessun ulteriore fattore di
     impossibilità rispetto alla resistenza
 
-![](metriche_files/figure-markdown_github/plot%20heatmap%20assorbimento-1.svg)
+![](metriche_files/figure-markdown_github/plot%20heatmap%20assorbimento-1.png)
 
 #### Metriche SAMC (Spatial Absorbing Markov Chain) Marx et al. (2020)
 
@@ -72,7 +72,7 @@ paesaggio per quel punto di lancio. Nelle mappe sono visualizzati con un
 gradiente i dati da 1 a 100 per cento. Le zone grigie hanno una
 probabilità di dispersione inferiore a 1 per cento.
 
-![](metriche_files/figure-markdown_github/plot%20heatmap%20dispersione-1.svg)
+![](metriche_files/figure-markdown_github/plot%20heatmap%20dispersione-1.png)
 
 ##### Mortalità
 
@@ -87,7 +87,7 @@ logaritmica si visualizza la mappa anche nelle zone di dispersione
 trascurabile (\<1%) per agevolare la comprensione del concetto di
 mortalità
 
-![](metriche_files/figure-markdown_github/plot%20heatmap%20mortalita-1.svg)
+![](metriche_files/figure-markdown_github/plot%20heatmap%20mortalita-1.png)
 
 <div id="refs" class="references csl-bib-body hanging-indent">
 
