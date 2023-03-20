@@ -31,9 +31,9 @@ scale_of_effect <- 10 #la home-range (in pixel di risoluzione) di movimento dei 
 response_grain <- 20 #in pixel di risoluzione la soglia dei movimenti di dispersione del parassitoide, ovvero non di breve periodo e senza ritorno.
 
 #qui sotto importiamo il vettore poligonale degli habitat, dell'azienda in studio, e rasterizziamo
-cartella <- './cartografia/output' #cartella delle elaborazioni finali
+cartella <- '/home/bonushenricus/Documenti/lavoro/progetti/vindicta/cartografia/arvaia/output' #cartella delle elaborazioni finali
 setwd(cartella) #setti la stessa cartella come quella in cui salverai le elaborazioni
-azienda <- "innocenti" #setti il nome dell'azienda
+azienda <- "habitat_giusto" #setti il nome dell'azienda
 file <- paste0(azienda,'.gpkg')
 habitat <- sf::read_sf(paste0('../fotointerpretazione/vector/',file))
 habitat$classe <- as.factor(habitat$classe)
@@ -615,22 +615,56 @@ Pmatrix <- #calcolo dell'oggetto di Spatial Absorbing Markov Chain basato su res
 #calcolo sia "origin" sia "occ" (la prima è un indice e la seconda un raster)
 #perché sono da usare alternativamente a seconda delle metriche
 estensione <- as.vector(extent(Pmatrix@map))
-lancio <- data.frame(x=mean(estensione[c(1,2)]), #trovo il punto centrale in coordinate
-                    y=mean(estensione[c(3,4)]))
-origine <- locate(Pmatrix,lancio) #definisco l'indice della cella centrale a partire dalle coordinate
-occupancy <- raster(Pmatrix@map) #faccio uno scheletro di raster occupancy senza valori
-occupancy[origine:origine] <- 90 #definisco 90 le celle dalla cella centrale alla cella centrale
-occupancy <- #resistance e absorbance non hanno valori nulli, quindi neppure occupancy può averli
-  reclassify(
-    occupancy,
-    matrix(c(NA,0),ncol=2,byrow = T) #sostituisco i valori nulli (ovvero tutti tranne il centro) con lo 0
+#lancio reale senza considerare il centro
+
+library(raster)
+lancio_x <- 679322.75
+lancio_y <- 4930474.22
+#lancio <- st_point(c(lancio_x,lancio_y))
+#st_write(lancio,driver = "ESRI Shapefile",)
+
+#lancio in azienda
+lancio_x2 <-678985.09
+lancio_y2 <- 4930774.66
+
+#lancio_x3 <- 722390
+#lancio_y3 <- 4908574
+
+#creazione di un dato spaziale con l'insieme dei punti di lancio
+occupancy_points <- 
+  SpatialPointsDataFrame(coords = 
+                           matrix(
+                             c(
+                               lancio_x,lancio_y
+                               ,lancio_x2,lancio_y2
+                             ),
+                             nrow = 2,byrow = T),
+                         data=data.frame(c(90,90)),
+                         proj4string = CRS("EPSG:25832")
   )
+
+
+occupancy_points_rast <- 
+  raster::rasterize(
+    occupancy_points,
+    resistance_norm)
+raster::values(occupancy_points_rast) <- 
+  ifelse(
+    is.na(raster::values(occupancy_points_rast)),
+    0,1)
+raster::writeRaster(
+  occupancy_points_rast,
+  filename = "/home/bonushenricus/Documenti/lavoro/progetti/vindicta/cartografia/arvaia/output/occupancy_points_raster.tif",
+  overwrite=T
+)
+occupancy_points_rast <- raster("/home/bonushenricus/Documenti/lavoro/progetti/vindicta/cartografia/arvaia/output/occupancy_points_raster.tif")
+library(samc)
 
 #metrica "dispersione"=probabilità per cella che sia visitata almeno una volta dal parassitoide
 dispersione <-  #calcolo
   dispersal(
     Pmatrix, 
-    occ = occupancy
+    occ = occupancy_points_rast
   )
 dispersione_map <- 
   samc::map(
@@ -639,7 +673,7 @@ dispersione_map <-
   )
 raster::writeRaster(
   dispersione_map,
-  filename = paste0('./3_dispersione/',azienda,".tif"),
+  filename = paste0('/home/bonushenricus/Documenti/lavoro/progetti/vindicta/cartografia/arvaia/output/3_dispersione/',azienda,".tif"),
   overwrite=T
 )
 

@@ -34,7 +34,7 @@ fun_query <- function(var1,var2,var3,var4) {
        ,HEIGHT=((as.numeric(var3)+1)*var4)
   )}
 query <- mapply(fun_query,bbox,colonne,righe,risoluzione,SIMPLIFY = F) #creo la query
-url <- list(url,url,url,url,url) #lista di tante url quanto è numeroso il numero di zone elaborate. Qui si deve agire manualmente
+url <- list(url,url,url,url,url,url) #lista di tante url quanto è numeroso il numero di zone elaborate. Qui si deve agire manualmente
 for (i in seq_along(url)){                          #questo loop serve per aggiornare il campo query per ogni url
   url[[i]]$query <- query[[i]]
 }
