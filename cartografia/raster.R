@@ -33,7 +33,7 @@ response_grain <- 20 #in pixel di risoluzione la soglia dei movimenti di dispers
 #qui sotto importiamo il vettore poligonale degli habitat, dell'azienda in studio, e rasterizziamo
 cartella <- './cartografia/output' #cartella delle elaborazioni finali
 setwd(cartella) #setti la stessa cartella come quella in cui salverai le elaborazioni
-azienda <- "magli" #setti il nome dell'azienda
+azienda <- "toderici" #setti il nome dell'azienda
 file <- paste0(azienda,'.gpkg')
 habitat <- sf::read_sf(paste0('../fotointerpretazione/vector/',file))
 habitat$classe <- as.factor(habitat$classe)
@@ -542,7 +542,7 @@ habitat_conductance_norm <-
   )
 #raster::writeRaster(
 #  habitat_conductance_norm,
-#  filename = paste0('/conduttanza/',azienda,".tif"), #questa è la mappa alla risoluzione di response_grain del gradiente di landscape
+#  filename = paste0('./conduttanza/',azienda,".tif"), #questa è la mappa alla risoluzione di response_grain del gradiente di landscape
 #  overwrite=T
 #)
 
@@ -561,6 +561,11 @@ resistance <-
         Inf,-log(10^(-4),1.25)), #digits 4
       ncol=2,
       byrow = T)
+  )
+resistance <- #valori inferiori a 0 che in alcuni casi possono formarsi è necessario trasformarli in valori minimi
+  raster::reclassify(
+    resistance,
+    cbind(-Inf, 0, 0.00001), right=FALSE
   )
 massimo <- 
   cellStats(
@@ -587,7 +592,11 @@ absorbance <-
 #appiattiamo molto la normalizzazione dell'assorbanza
 absorbance[is.infinite(absorbance)]<-5000
 massimo <- cellStats(absorbance,"max")
-
+absorbance <- #valori inferiori a 0 che in alcuni casi possono formarsi è necessario trasformarli in valori minimi
+  raster::reclassify(
+    absorbance,
+    cbind(-Inf, 0, 0.00001), right=FALSE
+  )
 absorbance_norm <- 
   raster::calc(
     absorbance,

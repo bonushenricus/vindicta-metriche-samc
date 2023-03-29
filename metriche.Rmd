@@ -302,7 +302,7 @@ Queste sono le foto aeree usate per la fotointerpretazione, tratte da [geoportal
 -   elaborazioni LIDAR risoluzione 1 metro del 2008-2013 quando presenti per l'area di studio, per ricavare la posizione delle arboree e le loro altezze.
 
 -   dati AGREA 2021 e 2022, disponibili qui [agreagestione file > AppezzAziendaGrafici](https://agreagestione.regione.emilia-romagna.it/agrea-file/AppezzAziendaGrafici/)
-```{r plot foto aeree, echo=FALSE, fig.ext='png',fig.height=3 ,fig.width=15, message=FALSE, warning=FALSE}
+```{r plot foto aeree, echo=FALSE, fig.ext='png',fig.height=6 ,fig.width=16, message=FALSE, warning=FALSE}
 do.call(grid.arrange,c(plot_foto_aeree, ncol = (length(raster_files)/(length(raster_dir)-1)),top = "Foto aeree 2020 NIR"))
 ```
 
