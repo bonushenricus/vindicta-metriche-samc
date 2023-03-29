@@ -302,7 +302,7 @@ Queste sono le foto aeree usate per la fotointerpretazione, tratte da [geoportal
 -   elaborazioni LIDAR risoluzione 1 metro del 2008-2013 quando presenti per l'area di studio, per ricavare la posizione delle arboree e le loro altezze.
 
 -   dati AGREA 2021 e 2022, disponibili qui [agreagestione file > AppezzAziendaGrafici](https://agreagestione.regione.emilia-romagna.it/agrea-file/AppezzAziendaGrafici/)
-```{r plot foto aeree, echo=FALSE, fig.ext='png',fig.height=3 ,fig.width=12, message=FALSE, warning=FALSE}
+```{r plot foto aeree, echo=FALSE, fig.ext='png',fig.height=3 ,fig.width=15, message=FALSE, warning=FALSE}
 do.call(grid.arrange,c(plot_foto_aeree, ncol = (length(raster_files)/(length(raster_dir)-1)),top = "Foto aeree 2020 NIR"))
 ```
 
@@ -318,7 +318,7 @@ Metrica di quanto è resistente al movimento il paesaggio.
 
 -   0= resistenza nulla
 
-```{r plot heatmap resistenza, echo=FALSE, fig.ext='png', fig.width=8 ,fig.height=10, message=FALSE, warning=FALSE}
+```{r plot heatmap resistenza, echo=FALSE, fig.ext='png', fig.width=8 ,fig.height=15, message=FALSE, warning=FALSE}
 plot_resistance_dc | ridge_resistance + plot_annotation(title="resistenza")
 ```
 
@@ -330,7 +330,7 @@ Assorbimento significa impossibilità di movimento, o incapacità di tornare ind
 
 -   0= assorbanza nulla, ovvero nessun ulteriore fattore di impossibilità rispetto alla resistenza
 
-```{r plot heatmap assorbimento, echo=FALSE, fig.ext='png', fig.width=8 ,fig.height=10, message=FALSE, warning=FALSE}
+```{r plot heatmap assorbimento, echo=FALSE, fig.ext='png', fig.width=8 ,fig.height=15, message=FALSE, warning=FALSE}
 plot_absorbance_dc | ridge_assorbance + plot_annotation(title="assorbimento")
 ```
 
@@ -345,7 +345,7 @@ Sono le metriche calcolate dal punto di lancio della vespa samurai, che è il ce
 Con dispersione si intende la probabilità che la cella sarà visitata almeno una volta dalle 90 femmine lanciate. Non si prendono in considerazione le generazioni successive e il fattore vento.
 Il grafico indica quindi la capacità di dispersione delle 90 femmine in quel paesaggio per quel punto di lancio. Nelle mappe sono visualizzati con un gradiente i dati da 1 a 100 per cento. Le zone grigie hanno una probabilità di dispersione inferiore a 1 per cento.
 
-```{r plot heatmap dispersione, echo=FALSE, fig.ext='png',fig.width=8 ,fig.height=10, message=FALSE, warning=FALSE}
+```{r plot heatmap dispersione, echo=FALSE, fig.ext='png',fig.width=8 ,fig.height=15, message=FALSE, warning=FALSE}
 plot_dispersion_dc | ridge_dispersion + plot_annotation(title="dispersione")
 ```
 
@@ -356,6 +356,6 @@ Con Mortalità si intende la probabilità di mortalità, che è data dall'insiem
 Nella mappa con scala logaritmica si visualizza la mappa anche nelle zone di dispersione trascurabile (<1%) per agevolare la comprensione del concetto di mortalità
 
 
-```{r plot heatmap mortalita, echo=FALSE, fig.ext='png',fig.width=8 ,fig.height=10, message=FALSE, warning=FALSE}
+```{r plot heatmap mortalita, echo=FALSE, fig.ext='png',fig.width=8 ,fig.height=15, message=FALSE, warning=FALSE}
 plot_mortality_dc | ridge_mortality + plot_annotation(title="mortalità")
 ```
