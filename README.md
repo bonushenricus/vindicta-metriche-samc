@@ -22,6 +22,6 @@ Il codice rmarkdown per l’elaborazione finale è in
 [metriche.Rmd](metriche.Rmd)
 
 L’elaborazione del paesaggio per ogni azienda viene sviluppata nella
-cartella “raster,” nello script [raster.R](raster/raster.R), che prende
-una fotointerpretazione e sviluppa l’elaborazione creando vari raster
-geotiff divisi in cartelle secondo la metrica.
+cartella “raster,” nello script [raster.R](cartografia/raster/raster.R),
+che prende una fotointerpretazione e sviluppa l’elaborazione creando
+vari raster geotiff divisi in cartelle secondo la metrica.

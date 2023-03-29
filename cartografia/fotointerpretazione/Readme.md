@@ -1,6 +1,5 @@
 ---
-output: md_document
-bibliography: vindicta_samc.bib
+
 ---
 
 # codice fotointerpretazione
